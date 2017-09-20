@@ -13,7 +13,7 @@ CentOS 7 based Jira server.
 
 Run the play with:
 
-    ansible-playbook -i vagrant/ site.yml
+    ansible-playbook -i meta/ site.yml
 
 this will install Jira and a local mysql DB for it to use.
 
