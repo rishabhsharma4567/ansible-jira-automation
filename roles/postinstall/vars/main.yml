@@ -1,0 +1,9 @@
+postinstall_msg: |
+
+   Jira needs manual input to finish the installation but we have skipped
+   this process by passing the values from DataBase
+  
+   You can modify the other services by accessing it through GUI link.
+   Go to http://{{ ansible_hostname }}:8080
+
+   THANKS 

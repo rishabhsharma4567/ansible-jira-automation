@@ -1,0 +1,14 @@
+---
+
+- name: Download the Source
+  get_url: url={{ mysql_repo_link }}/{{ mysql_version }}.noarch.rpm sha256sum={{ mysql_repo_sha256sum }} dest={{ mysql_home_dir }}/{{ mysql_version }}.noarch.rpm
+
+- name: install mysql repo
+  yum: name={{ mysql_home_dir }}/{{ mysql_version }}.noarch.rpm state=present
+
+- name: install mysql
+  yum: name=mysql-server state=present
+
+- name: start mysql
+  service: name=mysqld state=started
+           enabled=yes

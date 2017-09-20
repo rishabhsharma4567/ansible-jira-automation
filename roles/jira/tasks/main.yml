@@ -1,0 +1,61 @@
+---
+
+- name: create {{ jira_user }} account
+  user: name={{ jira_user }} comment="Jira"
+        createhome=yes home={{ jira_userhome }}
+
+# workaround for SNI support, see:
+#   https://github.com/ansible/ansible-modules-core/issues/1716
+- name: download {{ jira_tarurl }}
+  become_user: "{{ jira_user }}"
+  command: curl -s -O {{ jira_tarurl }}
+           creates={{ jira_tarcache }}
+           chdir={{ jira_userhome }} warn=no
+
+- name: create JIRA_HOME = {{ jira_home }}
+  become_user: "{{ jira_user }}"
+  file: path={{ jira_home }} state=directory
+  notify: bounce jira
+  
+- name: extract {{ jira_tarcache }} to {{ jira_home }}
+  become_user: "{{ jira_user }}"
+  unarchive: src={{ jira_tarcache }} dest={{ jira_userhome }}
+             remote_src=yes creates={{ jira_distdir }}
+  notify: bounce jira
+
+- name: add mysql 5.1.40 JDBC driver
+  copy: src=mysql-connector-java-5.1.39-SNAPSHOT-bin.jar
+        dest="{{ jira_distdir }}/lib/mysql-connector-java-5.1.39-SNAPSHOT-bin.jar"
+  become_user: "{{ jira_user }}"
+  notify: bounce jira
+
+- name: Set the home dir inside the configs
+  template: src=jira-application.properties.j2
+            dest={{ jira_distdir}}/atlassian-jira/WEB-INF/classes/jira-application.properties owner={{ jira_user }} mode=0644
+  become_user: "{{ jira_user }}"
+  notify: bounce jira
+
+- name: By passing all manual configurations during start-up
+  template: src=jira-home_bkup/{{item}}
+        dest={{ jira_home }} owner={{ jira_user }} mode=0644
+  with_items:
+      ['jira-healthcheck-eol.json','dbconfig.xml']
+
+- name: fixing the java check bug
+  template: src=bug/check-java.sh
+            dest={{ jira_distdir}}/bin/
+  become_user: "{{ jira_user }}"
+  notify: bounce jira
+
+- name: upstart script
+  template: src=etc/init/jira.service.j2
+            dest=/usr/lib/systemd/system/jira.service
+            mode=0555 owner=root group=root
+  notify: bounce jira
+
+- name: reload the service file
+  shell: systemctl daemon-reload
+  notify: bounce jira
+
+- name: start jira service
+  service: name=jira state=started enabled=yes

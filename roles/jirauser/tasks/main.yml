@@ -1,0 +1,6 @@
+---
+
+- name: create {{ jira_user }} account
+  user: name={{ jira_user }} comment="Jira"
+        createhome=yes home={{ jira_userhome }}
+

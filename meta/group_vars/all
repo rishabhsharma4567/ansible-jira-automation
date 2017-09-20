@@ -1,0 +1,3 @@
+mysql_repo_link: https://dev.mysql.com/get
+mysql_version: mysql57-community-release-el7-9
+mysql_repo_sha256sum: e663528b8b5071a67dc29393f5d7806ee78abe5e4d2d6c07f34c927b01a2ff80

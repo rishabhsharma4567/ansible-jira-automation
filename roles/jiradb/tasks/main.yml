@@ -1,0 +1,28 @@
+---
+
+- name: install MySQL-python
+  yum: name=MySQL-python state=present
+
+- name: copy generic database dump for jira
+  template: src=jira-restore.sql
+            dest=/tmp/jira-restore.sql
+            owner={{ jira_user}}
+            mode=0644
+
+- name: create jira db
+  mysql_db: name={{ jira_dbname }}
+            encoding=utf8
+
+- name: create jira db account
+  mysql_user: name={{ jira_dbuser }}
+              password={{ jira_dbpass }}
+              priv={{ jira_dbname }}.*:ALL
+              host={{ item }} state=present
+  with_items:
+    - '%'
+    - 'localhost'
+
+- name: Setting up the license and database 
+  mysql_db: name={{ jira_dbname }}
+            state=import target=/tmp/jira-restore.sql
+            encoding=utf8
