@@ -1,0 +1,13 @@
+---
+
+- hosts: aws_server
+  become: yes
+  # NB: this is overridden in several tasks
+  become_user: root
+  roles:
+    #- jiruser
+    - openjdk8
+    - mysql
+    - jiradb
+    - jira
+    - postinstall
